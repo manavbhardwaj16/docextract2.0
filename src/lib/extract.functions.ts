@@ -66,16 +66,14 @@ export const extractDocument = createServerFn({ method: "POST" })
 
     const json = (await res.json()) as {
       choices: Array<{ message: { content: string } }>;
-      usage?: unknown;
     };
     const raw = json.choices?.[0]?.message?.content ?? "{}";
-    let parsed: unknown;
+    let parsed: Record<string, unknown>;
     try {
       parsed = JSON.parse(raw);
     } catch {
-      // Try to recover JSON from fenced output
       const m = raw.match(/\{[\s\S]*\}/);
-      parsed = m ? JSON.parse(m[0]) : { error: "Failed to parse model output", raw };
+      parsed = m ? JSON.parse(m[0]) : { error: "Failed to parse model output" };
     }
-    return { data: parsed, raw, usage: json.usage ?? null };
+    return { data: parsed, raw };
   });
