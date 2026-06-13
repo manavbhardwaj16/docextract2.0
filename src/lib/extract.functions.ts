@@ -68,12 +68,14 @@ export const extractDocument = createServerFn({ method: "POST" })
       choices: Array<{ message: { content: string } }>;
     };
     const raw = json.choices?.[0]?.message?.content ?? "{}";
-    let parsed: Record<string, unknown>;
+    let pretty = raw;
     try {
-      parsed = JSON.parse(raw);
+      pretty = JSON.stringify(JSON.parse(raw), null, 2);
     } catch {
       const m = raw.match(/\{[\s\S]*\}/);
-      parsed = m ? JSON.parse(m[0]) : { error: "Failed to parse model output" };
+      if (m) {
+        try { pretty = JSON.stringify(JSON.parse(m[0]), null, 2); } catch { /* keep raw */ }
+      }
     }
-    return { data: parsed, raw };
+    return { json: pretty };
   });
